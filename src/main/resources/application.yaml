@@ -1,3 +1,25 @@
 spring:
   application:
     name: alert-hound
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      acks: 1
+      retries: 3
+      batch-size: 32768
+      linger-ms: 5
+      compression-type: snappy
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+
+server:
+  port: 8080
+
+alert-hound:
+  kafka:
+    topics:
+      logs-raw: logs.raw
+      logs-raw-partitions: 3
+      logs-raw-replication-factor: 1
