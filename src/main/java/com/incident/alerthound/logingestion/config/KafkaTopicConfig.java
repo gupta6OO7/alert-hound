@@ -1,7 +1,8 @@
 package com.incident.alerthound.logingestion.config;
 
+import com.incident.alerthound.config.AlertHoundProperties;
 import org.apache.kafka.clients.admin.NewTopic;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
@@ -10,14 +11,13 @@ import org.springframework.kafka.config.TopicBuilder;
 public class KafkaTopicConfig {
 
     @Bean
-    public NewTopic logsRawTopic(
-            @Value("${alert-hound.kafka.topics.logs-raw}") String topicName,
-            @Value("${alert-hound.kafka.topics.logs-raw-partitions}") int partitions,
-            @Value("${alert-hound.kafka.topics.logs-raw-replication-factor}") short replicationFactor
-    ) {
-        return TopicBuilder.name(topicName)
-                .partitions(partitions)
-                .replicas(replicationFactor)
+    @ConditionalOnProperty(prefix = "alert-hound.kafka.admin", name = "auto-create-topics", havingValue = "true")
+    public NewTopic logsRawTopic(AlertHoundProperties properties) {
+        AlertHoundProperties.TopicDefinition topic = properties.kafka().topics().logsRaw();
+
+        return TopicBuilder.name(topic.name())
+                .partitions(topic.partitions())
+                .replicas(topic.replicationFactor())
                 .build();
     }
 }

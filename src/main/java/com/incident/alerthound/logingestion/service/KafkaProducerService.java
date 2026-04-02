@@ -1,9 +1,9 @@
 package com.incident.alerthound.logingestion.service;
 
+import com.incident.alerthound.config.AlertHoundProperties;
 import com.incident.alerthound.logingestion.model.LogEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -15,12 +15,9 @@ public class KafkaProducerService {
     private final KafkaTemplate<String, LogEvent> kafkaTemplate;
     private final String logsRawTopic;
 
-    public KafkaProducerService(
-            KafkaTemplate<String, LogEvent> kafkaTemplate,
-            @Value("${alert-hound.kafka.topics.logs-raw}") String logsRawTopic
-    ) {
+    public KafkaProducerService(KafkaTemplate<String, LogEvent> kafkaTemplate, AlertHoundProperties properties) {
         this.kafkaTemplate = kafkaTemplate;
-        this.logsRawTopic = logsRawTopic;
+        this.logsRawTopic = properties.kafka().topics().logsRaw().name();
     }
 
     public void send(LogEvent event) {
