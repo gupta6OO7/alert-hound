@@ -22,7 +22,10 @@ public record AlertHoundProperties(
     }
 
     public record TopicProperties(
-            TopicDefinition logsRaw
+            TopicDefinition logsRaw,
+            TopicDefinition logsProcessed,
+            TopicDefinition logsInvalid,
+            TopicDefinition logsFailed
     ) {
     }
 

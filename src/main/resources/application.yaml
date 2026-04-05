@@ -1,9 +1,25 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: alert-hound
   kafka:
     bootstrap-servers: ${ALERT_HOUND_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     client-id: ${ALERT_HOUND_KAFKA_CLIENT_ID:alert-hound}
+    consumer:
+      group-id: ${ALERT_HOUND_KAFKA_CONSUMER_GROUP_ID:log-processor-group}
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: com.incident.alerthound.logingestion.model.LogEvent
+        spring.json.trusted.packages: com.incident.alerthound.*
+        isolation.level: read_committed
+    listener:
+      ack-mode: manual_immediate
+      concurrency: ${ALERT_HOUND_KAFKA_LISTENER_CONCURRENCY:3}
     producer:
       acks: 1
       retries: 3
@@ -15,6 +31,7 @@ spring:
       properties:
         spring.json.add.type.headers: false
     properties:
+      session.timeout.ms: 45000
       security.protocol: ${ALERT_HOUND_KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
       sasl.mechanism: ${ALERT_HOUND_KAFKA_SASL_MECHANISM:}
       sasl.jaas.config: ${ALERT_HOUND_KAFKA_SASL_JAAS_CONFIG:}
@@ -33,6 +50,18 @@ alert-hound:
         name: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_RAW:logs.raw}
         partitions: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_RAW_PARTITIONS:3}
         replication-factor: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_RAW_REPLICATION_FACTOR:1}
+      logs-processed:
+        name: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_PROCESSED:logs.processed}
+        partitions: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_PROCESSED_PARTITIONS:3}
+        replication-factor: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_PROCESSED_REPLICATION_FACTOR:1}
+      logs-invalid:
+        name: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_INVALID:logs.invalid}
+        partitions: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_INVALID_PARTITIONS:3}
+        replication-factor: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_INVALID_REPLICATION_FACTOR:1}
+      logs-failed:
+        name: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_FAILED:logs.failed}
+        partitions: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_FAILED_PARTITIONS:3}
+        replication-factor: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_FAILED_REPLICATION_FACTOR:1}
   elasticsearch:
     endpoint: ${ALERT_HOUND_ELASTICSEARCH_ENDPOINT:}
     api-key: ${ALERT_HOUND_ELASTICSEARCH_API_KEY:}
