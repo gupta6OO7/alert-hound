@@ -3,6 +3,14 @@ spring:
     import: optional:file:.env[.properties]
   application:
     name: alert-hound
+  data:
+    redis:
+      host: ${ALERT_HOUND_REDIS_HOST:localhost}
+      port: ${ALERT_HOUND_REDIS_PORT:6379}
+      username: ${ALERT_HOUND_REDIS_USERNAME:}
+      password: ${ALERT_HOUND_REDIS_PASSWORD:}
+      ssl:
+        enabled: ${ALERT_HOUND_REDIS_SSL_ENABLED:false}
   kafka:
     bootstrap-servers: ${ALERT_HOUND_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     client-id: ${ALERT_HOUND_KAFKA_CLIENT_ID:alert-hound}
@@ -54,7 +62,18 @@ alert-hound:
         name: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_PROCESSED:logs.processed}
         partitions: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_PROCESSED_PARTITIONS:3}
         replication-factor: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_PROCESSED_REPLICATION_FACTOR:1}
+      incidents-created:
+        name: ${ALERT_HOUND_KAFKA_TOPIC_INCIDENTS_CREATED:incidents.created}
+        partitions: ${ALERT_HOUND_KAFKA_TOPIC_INCIDENTS_CREATED_PARTITIONS:3}
+        replication-factor: ${ALERT_HOUND_KAFKA_TOPIC_INCIDENTS_CREATED_REPLICATION_FACTOR:1}
   elasticsearch:
     endpoint: ${ALERT_HOUND_ELASTICSEARCH_ENDPOINT:}
     api-key: ${ALERT_HOUND_ELASTICSEARCH_API_KEY:}
     logs-index-pattern: ${ALERT_HOUND_ELASTICSEARCH_LOGS_INDEX_PATTERN:logs-*}
+  detection:
+    consumer-group-id: ${ALERT_HOUND_DETECTION_CONSUMER_GROUP_ID:detection-group}
+    window-size-minutes: ${ALERT_HOUND_DETECTION_WINDOW_SIZE_MINUTES:2}
+    counter-ttl-minutes: ${ALERT_HOUND_DETECTION_COUNTER_TTL_MINUTES:10}
+    dedup-ttl-minutes: ${ALERT_HOUND_DETECTION_DEDUP_TTL_MINUTES:5}
+    minimum-total-logs: ${ALERT_HOUND_DETECTION_MINIMUM_TOTAL_LOGS:100}
+    error-rate-threshold: ${ALERT_HOUND_DETECTION_ERROR_RATE_THRESHOLD:0.05}

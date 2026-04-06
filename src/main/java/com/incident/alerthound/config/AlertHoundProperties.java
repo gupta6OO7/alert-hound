@@ -5,7 +5,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "alert-hound")
 public record AlertHoundProperties(
         KafkaProperties kafka,
-        ElasticsearchProperties elasticsearch
+        ElasticsearchProperties elasticsearch,
+        DetectionProperties detection
 ) {
 
     public record KafkaProperties(
@@ -23,7 +24,8 @@ public record AlertHoundProperties(
 
     public record TopicProperties(
             TopicDefinition logsRaw,
-            TopicDefinition logsProcessed
+            TopicDefinition logsProcessed,
+            TopicDefinition incidentsCreated
     ) {
     }
 
@@ -38,6 +40,16 @@ public record AlertHoundProperties(
             String endpoint,
             String apiKey,
             String logsIndexPattern
+    ) {
+    }
+
+    public record DetectionProperties(
+            String consumerGroupId,
+            int windowSizeMinutes,
+            int counterTtlMinutes,
+            int dedupTtlMinutes,
+            long minimumTotalLogs,
+            double errorRateThreshold
     ) {
     }
 }
