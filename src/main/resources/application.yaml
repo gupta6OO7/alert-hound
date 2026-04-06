@@ -54,14 +54,6 @@ alert-hound:
         name: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_PROCESSED:logs.processed}
         partitions: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_PROCESSED_PARTITIONS:3}
         replication-factor: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_PROCESSED_REPLICATION_FACTOR:1}
-      logs-invalid:
-        name: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_INVALID:logs.invalid}
-        partitions: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_INVALID_PARTITIONS:3}
-        replication-factor: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_INVALID_REPLICATION_FACTOR:1}
-      logs-failed:
-        name: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_FAILED:logs.failed}
-        partitions: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_FAILED_PARTITIONS:3}
-        replication-factor: ${ALERT_HOUND_KAFKA_TOPIC_LOGS_FAILED_REPLICATION_FACTOR:1}
   elasticsearch:
     endpoint: ${ALERT_HOUND_ELASTICSEARCH_ENDPOINT:}
     api-key: ${ALERT_HOUND_ELASTICSEARCH_API_KEY:}

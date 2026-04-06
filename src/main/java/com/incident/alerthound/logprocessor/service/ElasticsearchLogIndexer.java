@@ -1,6 +1,8 @@
 package com.incident.alerthound.logprocessor.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch._types.OpType;
 import co.elastic.clients.elasticsearch._types.mapping.Property;
 import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
 import com.incident.alerthound.config.AlertHoundProperties;
@@ -12,6 +14,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import jakarta.json.JsonException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -46,7 +49,12 @@ public class ElasticsearchLogIndexer {
             elasticsearchClient.index(request -> request
                     .index(indexName)
                     .id(log.id())
+                    .opType(OpType.Create)
                     .document(log));
+        } catch (ElasticsearchException exception) {
+            throw mapElasticsearchException("Failed to index log " + log.id() + " into Elasticsearch", exception);
+        } catch (JsonException exception) {
+            throw new NonRetryableProcessingException("Failed to serialize log " + log.id() + " for Elasticsearch", exception);
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to index log " + log.id() + " into Elasticsearch", exception);
         }
@@ -68,20 +76,15 @@ public class ElasticsearchLogIndexer {
                 return;
             }
 
-            CreateIndexRequest request = new CreateIndexRequest.Builder()
-                    .index(indexName)
-                    .mappings(mapping -> mapping.properties("timestamp", Property.of(p -> p.date(d -> d)))
-                            .properties("service", Property.of(p -> p.keyword(k -> k)))
-                            .properties("level", Property.of(p -> p.keyword(k -> k)))
-                            .properties("message", Property.of(p -> p.text(t -> t)))
-                            .properties("traceId", Property.of(p -> p.keyword(k -> k)))
-                            .properties("errorCategory", Property.of(p -> p.keyword(k -> k)))
-                            .properties("error", Property.of(p -> p.boolean_(b -> b)))
-                            .properties("processedAt", Property.of(p -> p.date(d -> d))))
-                    .build();
-
-            elasticsearchClient.indices().create(request);
+            createIndex(indexName);
             LOGGER.info("Created Elasticsearch index {}", indexName);
+        } catch (ElasticsearchException exception) {
+            if (isDataStreamOnlyTemplateError(exception)) {
+                createDataStream(indexName);
+                return;
+            }
+            knownIndices.remove(indexName);
+            throw mapElasticsearchException("Failed to ensure Elasticsearch index " + indexName, exception);
         } catch (IOException exception) {
             knownIndices.remove(indexName);
             throw new IllegalStateException("Failed to ensure Elasticsearch index " + indexName, exception);
@@ -99,5 +102,51 @@ public class ElasticsearchLogIndexer {
         }
 
         return pattern.endsWith("-") ? pattern : pattern + "-";
+    }
+
+    private RuntimeException mapElasticsearchException(String message, ElasticsearchException exception) {
+        if (exception.error() != null && "security_exception".equals(exception.error().type())) {
+            return new NonRetryableProcessingException(
+                    "Elasticsearch authentication failed. Check alert-hound.elasticsearch.api-key",
+                    exception
+            );
+        }
+        return new IllegalStateException(message, exception);
+    }
+
+    private void createIndex(String indexName) throws IOException {
+        CreateIndexRequest request = new CreateIndexRequest.Builder()
+                .index(indexName)
+                .mappings(mapping -> mapping.properties("timestamp", Property.of(p -> p.date(d -> d)))
+                        .properties("service", Property.of(p -> p.keyword(k -> k)))
+                        .properties("level", Property.of(p -> p.keyword(k -> k)))
+                        .properties("message", Property.of(p -> p.text(t -> t)))
+                        .properties("traceId", Property.of(p -> p.keyword(k -> k)))
+                        .properties("errorCategory", Property.of(p -> p.keyword(k -> k)))
+                        .properties("error", Property.of(p -> p.boolean_(b -> b)))
+                        .properties("processedAt", Property.of(p -> p.date(d -> d))))
+                .build();
+
+        elasticsearchClient.indices().create(request);
+    }
+
+    private void createDataStream(String indexName) {
+        try {
+            elasticsearchClient.indices().createDataStream(request -> request.name(indexName));
+            LOGGER.info("Created Elasticsearch data stream {}", indexName);
+        } catch (ElasticsearchException exception) {
+            knownIndices.remove(indexName);
+            throw mapElasticsearchException("Failed to ensure Elasticsearch data stream " + indexName, exception);
+        } catch (IOException exception) {
+            knownIndices.remove(indexName);
+            throw new IllegalStateException("Failed to ensure Elasticsearch data stream " + indexName, exception);
+        }
+    }
+
+    private boolean isDataStreamOnlyTemplateError(ElasticsearchException exception) {
+        return exception.error() != null
+                && "illegal_argument_exception".equals(exception.error().type())
+                && exception.error().reason() != null
+                && exception.error().reason().contains("creates data streams only");
     }
 }

@@ -4,6 +4,7 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import org.apache.http.Header;
@@ -36,8 +37,8 @@ public class ElasticsearchConfig {
     }
 
     @Bean
-    public ElasticsearchTransport elasticsearchTransport(RestClient restClient) {
-        return new RestClientTransport(restClient, new JacksonJsonpMapper());
+    public ElasticsearchTransport elasticsearchTransport(RestClient restClient, ObjectMapper objectMapper) {
+        return new RestClientTransport(restClient, new JacksonJsonpMapper(objectMapper));
     }
 
     @Bean
@@ -46,6 +47,10 @@ public class ElasticsearchConfig {
     }
 
     private String encodeApiKey(String apiKey) {
-        return Base64.getEncoder().encodeToString(apiKey.getBytes(StandardCharsets.UTF_8));
+        String trimmedApiKey = apiKey.trim();
+        if (trimmedApiKey.contains(":")) {
+            return Base64.getEncoder().encodeToString(trimmedApiKey.getBytes(StandardCharsets.UTF_8));
+        }
+        return trimmedApiKey;
     }
 }

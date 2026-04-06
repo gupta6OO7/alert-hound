@@ -1,9 +1,9 @@
 package com.incident.alerthound.logprocessor.api;
 
 import com.incident.alerthound.logingestion.model.LogEvent;
-import com.incident.alerthound.logprocessor.service.InvalidLogPublisher;
 import com.incident.alerthound.logprocessor.service.LogProcessorService;
 import com.incident.alerthound.logprocessor.service.LogTransformationException;
+import com.incident.alerthound.logprocessor.service.NonRetryableProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -16,11 +16,9 @@ public class LogProcessorConsumer {
     private static final Logger LOGGER = LoggerFactory.getLogger(LogProcessorConsumer.class);
 
     private final LogProcessorService logProcessorService;
-    private final InvalidLogPublisher invalidLogPublisher;
 
-    public LogProcessorConsumer(LogProcessorService logProcessorService, InvalidLogPublisher invalidLogPublisher) {
+    public LogProcessorConsumer(LogProcessorService logProcessorService) {
         this.logProcessorService = logProcessorService;
-        this.invalidLogPublisher = invalidLogPublisher;
     }
 
     @KafkaListener(
@@ -33,7 +31,19 @@ public class LogProcessorConsumer {
             logProcessorService.process(event);
             acknowledgment.acknowledge();
         } catch (LogTransformationException exception) {
-            invalidLogPublisher.publish(event, exception.getMessage());
+            LOGGER.warn(
+                    "Skipping invalid log {}: {}",
+                    event != null ? event.id() : "unknown",
+                    exception.getMessage()
+            );
+            acknowledgment.acknowledge();
+        } catch (NonRetryableProcessingException exception) {
+            LOGGER.error(
+                    "Skipping log {} because of a non-retryable processing failure: {}",
+                    event != null ? event.id() : "unknown",
+                    exception.getMessage(),
+                    exception
+            );
             acknowledgment.acknowledge();
         } catch (RuntimeException exception) {
             LOGGER.error("Transient failure while processing log {}", event != null ? event.id() : "unknown", exception);
