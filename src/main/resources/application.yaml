@@ -11,6 +11,18 @@ spring:
       password: ${ALERT_HOUND_REDIS_PASSWORD:}
       ssl:
         enabled: ${ALERT_HOUND_REDIS_SSL_ENABLED:false}
+  datasource:
+    url: ${ALERT_HOUND_DATASOURCE_URL:jdbc:h2:mem:alerthound;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${ALERT_HOUND_DATASOURCE_USERNAME:sa}
+    password: ${ALERT_HOUND_DATASOURCE_PASSWORD:}
+    driver-class-name: ${ALERT_HOUND_DATASOURCE_DRIVER_CLASS_NAME:org.h2.Driver}
+  jpa:
+    hibernate:
+      ddl-auto: ${ALERT_HOUND_JPA_DDL_AUTO:update}
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
   kafka:
     bootstrap-servers: ${ALERT_HOUND_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     client-id: ${ALERT_HOUND_KAFKA_CLIENT_ID:alert-hound}
@@ -66,6 +78,10 @@ alert-hound:
         name: ${ALERT_HOUND_KAFKA_TOPIC_INCIDENTS_CREATED:incidents.created}
         partitions: ${ALERT_HOUND_KAFKA_TOPIC_INCIDENTS_CREATED_PARTITIONS:3}
         replication-factor: ${ALERT_HOUND_KAFKA_TOPIC_INCIDENTS_CREATED_REPLICATION_FACTOR:1}
+      agent-tasks:
+        name: ${ALERT_HOUND_KAFKA_TOPIC_AGENT_TASKS:agent.tasks}
+        partitions: ${ALERT_HOUND_KAFKA_TOPIC_AGENT_TASKS_PARTITIONS:3}
+        replication-factor: ${ALERT_HOUND_KAFKA_TOPIC_AGENT_TASKS_REPLICATION_FACTOR:1}
   elasticsearch:
     endpoint: ${ALERT_HOUND_ELASTICSEARCH_ENDPOINT:}
     api-key: ${ALERT_HOUND_ELASTICSEARCH_API_KEY:}
@@ -77,3 +93,6 @@ alert-hound:
     dedup-ttl-minutes: ${ALERT_HOUND_DETECTION_DEDUP_TTL_MINUTES:5}
     minimum-total-logs: ${ALERT_HOUND_DETECTION_MINIMUM_TOTAL_LOGS:100}
     error-rate-threshold: ${ALERT_HOUND_DETECTION_ERROR_RATE_THRESHOLD:0.05}
+  incidents:
+    consumer-group-id: ${ALERT_HOUND_INCIDENTS_CONSUMER_GROUP_ID:incident-group}
+    active-cache-ttl-hours: ${ALERT_HOUND_INCIDENTS_ACTIVE_CACHE_TTL_HOURS:24}

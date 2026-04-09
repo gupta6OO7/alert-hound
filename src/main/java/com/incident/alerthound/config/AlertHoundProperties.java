@@ -6,7 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record AlertHoundProperties(
         KafkaProperties kafka,
         ElasticsearchProperties elasticsearch,
-        DetectionProperties detection
+        DetectionProperties detection,
+        IncidentProperties incidents
 ) {
 
     public record KafkaProperties(
@@ -25,7 +26,8 @@ public record AlertHoundProperties(
     public record TopicProperties(
             TopicDefinition logsRaw,
             TopicDefinition logsProcessed,
-            TopicDefinition incidentsCreated
+            TopicDefinition incidentsCreated,
+            TopicDefinition agentTasks
     ) {
     }
 
@@ -50,6 +52,12 @@ public record AlertHoundProperties(
             int dedupTtlMinutes,
             long minimumTotalLogs,
             double errorRateThreshold
+    ) {
+    }
+
+    public record IncidentProperties(
+            String consumerGroupId,
+            int activeCacheTtlHours
     ) {
     }
 }

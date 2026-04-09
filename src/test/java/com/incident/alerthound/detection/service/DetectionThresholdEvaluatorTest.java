@@ -52,7 +52,8 @@ class DetectionThresholdEvaluatorTest {
         return new AlertHoundProperties(
                 null,
                 null,
-                new AlertHoundProperties.DetectionProperties("detection-group", 2, 10, 5, 100L, 0.05d)
+                new AlertHoundProperties.DetectionProperties("detection-group", 2, 10, 5, 100L, 0.05d),
+                new AlertHoundProperties.IncidentProperties("incident-group", 24)
         );
     }
 }

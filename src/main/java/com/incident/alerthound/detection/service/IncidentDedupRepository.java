@@ -37,6 +37,6 @@ public class IncidentDedupRepository {
     }
 
     private String activeIncidentKey(String service) {
-        return "incident:active:%s".formatted(service);
+        return "incident:dedup:%s".formatted(service);
     }
 }
