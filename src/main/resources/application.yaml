@@ -55,7 +55,6 @@ spring:
       security.protocol: ${ALERT_HOUND_KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
       sasl.mechanism: ${ALERT_HOUND_KAFKA_SASL_MECHANISM:}
       sasl.jaas.config: ${ALERT_HOUND_KAFKA_SASL_JAAS_CONFIG:}
-
 server:
   port: ${SERVER_PORT:8080}
 
@@ -82,6 +81,10 @@ alert-hound:
         name: ${ALERT_HOUND_KAFKA_TOPIC_AGENT_TASKS:agent.tasks}
         partitions: ${ALERT_HOUND_KAFKA_TOPIC_AGENT_TASKS_PARTITIONS:3}
         replication-factor: ${ALERT_HOUND_KAFKA_TOPIC_AGENT_TASKS_REPLICATION_FACTOR:1}
+      agent-results:
+        name: ${ALERT_HOUND_KAFKA_TOPIC_AGENT_RESULTS:agent.results}
+        partitions: ${ALERT_HOUND_KAFKA_TOPIC_AGENT_RESULTS_PARTITIONS:3}
+        replication-factor: ${ALERT_HOUND_KAFKA_TOPIC_AGENT_RESULTS_REPLICATION_FACTOR:1}
   elasticsearch:
     endpoint: ${ALERT_HOUND_ELASTICSEARCH_ENDPOINT:}
     api-key: ${ALERT_HOUND_ELASTICSEARCH_API_KEY:}
@@ -96,3 +99,9 @@ alert-hound:
   incidents:
     consumer-group-id: ${ALERT_HOUND_INCIDENTS_CONSUMER_GROUP_ID:incident-group}
     active-cache-ttl-hours: ${ALERT_HOUND_INCIDENTS_ACTIVE_CACHE_TTL_HOURS:24}
+  agent:
+    consumer-group-id: ${ALERT_HOUND_AGENT_CONSUMER_GROUP_ID:agent-group}
+    max-iterations: ${ALERT_HOUND_AGENT_MAX_ITERATIONS:3}
+    recent-logs-limit: ${ALERT_HOUND_AGENT_RECENT_LOGS_LIMIT:20}
+    history-limit: ${ALERT_HOUND_AGENT_HISTORY_LIMIT:5}
+    log-lookback-minutes: ${ALERT_HOUND_AGENT_LOG_LOOKBACK_MINUTES:5}

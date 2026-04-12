@@ -7,7 +7,8 @@ public record AlertHoundProperties(
         KafkaProperties kafka,
         ElasticsearchProperties elasticsearch,
         DetectionProperties detection,
-        IncidentProperties incidents
+        IncidentProperties incidents,
+        AgentProperties agent
 ) {
 
     public record KafkaProperties(
@@ -27,7 +28,8 @@ public record AlertHoundProperties(
             TopicDefinition logsRaw,
             TopicDefinition logsProcessed,
             TopicDefinition incidentsCreated,
-            TopicDefinition agentTasks
+            TopicDefinition agentTasks,
+            TopicDefinition agentResults
     ) {
     }
 
@@ -58,6 +60,15 @@ public record AlertHoundProperties(
     public record IncidentProperties(
             String consumerGroupId,
             int activeCacheTtlHours
+    ) {
+    }
+
+    public record AgentProperties(
+            String consumerGroupId,
+            int maxIterations,
+            int recentLogsLimit,
+            int historyLimit,
+            int logLookbackMinutes
     ) {
     }
 }

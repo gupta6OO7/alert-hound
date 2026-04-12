@@ -13,4 +13,6 @@ public interface IncidentRepository extends JpaRepository<Incident, UUID> {
     List<Incident> findByStatusInOrderByCreatedAtDesc(Collection<IncidentStatus> statuses);
 
     Optional<Incident> findFirstByServiceAndStatusInOrderByCreatedAtDesc(String service, Collection<IncidentStatus> statuses);
+
+    List<Incident> findTop5ByServiceOrderByUpdatedAtDesc(String service);
 }
