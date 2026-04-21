@@ -15,6 +15,8 @@ import org.springframework.stereotype.Repository;
 public class RedisLogCounterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisLogCounterRepository.class);
+    private static final int DEFAULT_COUNTER_TTL_MINUTES = 10;
+    private static final int DEFAULT_WINDOW_SIZE_MINUTES = 2;
 
     private final StringRedisTemplate redisTemplate;
     private final Duration counterTtl;
@@ -22,8 +24,14 @@ public class RedisLogCounterRepository {
 
     public RedisLogCounterRepository(StringRedisTemplate redisTemplate, AlertHoundProperties properties) {
         this.redisTemplate = redisTemplate;
-        this.counterTtl = Duration.ofMinutes(properties.detection().counterTtlMinutes());
-        this.windowSizeMinutes = properties.detection().windowSizeMinutes();
+        int configuredCounterTtl = properties != null && properties.detection() != null && properties.detection().counterTtlMinutes() > 0
+                ? properties.detection().counterTtlMinutes()
+                : DEFAULT_COUNTER_TTL_MINUTES;
+        int configuredWindowSize = properties != null && properties.detection() != null && properties.detection().windowSizeMinutes() > 0
+                ? properties.detection().windowSizeMinutes()
+                : DEFAULT_WINDOW_SIZE_MINUTES;
+        this.counterTtl = Duration.ofMinutes(configuredCounterTtl);
+        this.windowSizeMinutes = configuredWindowSize;
     }
 
     public void increment(Instant timestamp, String service, boolean error) {

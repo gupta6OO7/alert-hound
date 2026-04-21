@@ -23,6 +23,11 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  flyway:
+    enabled: ${ALERT_HOUND_FLYWAY_ENABLED:true}
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration/postgresql
   kafka:
     bootstrap-servers: ${ALERT_HOUND_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     client-id: ${ALERT_HOUND_KAFKA_CLIENT_ID:alert-hound}

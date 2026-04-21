@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 public class ActiveIncidentCacheRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ActiveIncidentCacheRepository.class);
+    private static final int DEFAULT_ACTIVE_CACHE_TTL_HOURS = 24;
 
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
@@ -26,7 +27,10 @@ public class ActiveIncidentCacheRepository {
     ) {
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
-        this.ttl = Duration.ofHours(properties.incidents().activeCacheTtlHours());
+        int configuredTtlHours = properties != null && properties.incidents() != null && properties.incidents().activeCacheTtlHours() > 0
+                ? properties.incidents().activeCacheTtlHours()
+                : DEFAULT_ACTIVE_CACHE_TTL_HOURS;
+        this.ttl = Duration.ofHours(configuredTtlHours);
     }
 
     public void save(ActiveIncidentState state) {

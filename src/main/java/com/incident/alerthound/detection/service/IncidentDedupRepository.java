@@ -12,13 +12,17 @@ import org.springframework.stereotype.Repository;
 public class IncidentDedupRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IncidentDedupRepository.class);
+    private static final int DEFAULT_DEDUP_TTL_MINUTES = 5;
 
     private final StringRedisTemplate redisTemplate;
     private final Duration dedupTtl;
 
     public IncidentDedupRepository(StringRedisTemplate redisTemplate, AlertHoundProperties properties) {
         this.redisTemplate = redisTemplate;
-        this.dedupTtl = Duration.ofMinutes(properties.detection().dedupTtlMinutes());
+        int configuredDedupTtl = properties != null && properties.detection() != null && properties.detection().dedupTtlMinutes() > 0
+                ? properties.detection().dedupTtlMinutes()
+                : DEFAULT_DEDUP_TTL_MINUTES;
+        this.dedupTtl = Duration.ofMinutes(configuredDedupTtl);
     }
 
     public boolean tryActivate(String service) {
