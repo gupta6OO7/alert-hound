@@ -4,10 +4,14 @@ import com.incident.alerthound.agent.model.ToolResult;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SearchLogsTool implements Tool {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SearchLogsTool.class);
 
     private final RagService ragService;
 
@@ -26,6 +30,7 @@ public class SearchLogsTool implements Tool {
         Instant to = instantValue(input.get("to"), Instant.now());
         Instant from = instantValue(input.get("from"), to.minus(5, ChronoUnit.MINUTES));
         int limit = intValue(input.get("limit"), 20);
+        LOGGER.debug("SearchLogsTool normalized input service={} from={} to={} limit={}", service, from, to, limit);
         return ragService.searchLogs(service, from, to, limit);
     }
 

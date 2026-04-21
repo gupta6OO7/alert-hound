@@ -32,6 +32,13 @@ public class ActiveIncidentCacheRepository {
     public void save(ActiveIncidentState state) {
         try {
             redisTemplate.opsForValue().set(cacheKey(state.service()), objectMapper.writeValueAsString(state), ttl);
+            LOGGER.debug(
+                    "Saved active incident cache service={} incidentId={} status={} ttl={}",
+                    state.service(),
+                    state.incidentId(),
+                    state.status(),
+                    ttl
+            );
         } catch (JsonProcessingException exception) {
             LOGGER.warn("Failed to serialize active incident cache for service {}", state.service(), exception);
         }
@@ -40,11 +47,14 @@ public class ActiveIncidentCacheRepository {
     public ActiveIncidentState get(String service) {
         String payload = redisTemplate.opsForValue().get(cacheKey(service));
         if (payload == null || payload.isBlank()) {
+            LOGGER.debug("Active incident cache miss for service={}", service);
             return null;
         }
 
         try {
-            return objectMapper.readValue(payload, ActiveIncidentState.class);
+            ActiveIncidentState state = objectMapper.readValue(payload, ActiveIncidentState.class);
+            LOGGER.debug("Loaded active incident cache service={} incidentId={} status={}", service, state.incidentId(), state.status());
+            return state;
         } catch (JsonProcessingException exception) {
             LOGGER.warn("Failed to deserialize active incident cache for service {}", service, exception);
             return null;
@@ -58,6 +68,7 @@ public class ActiveIncidentCacheRepository {
 
     public void delete(String service) {
         redisTemplate.delete(cacheKey(service));
+        LOGGER.debug("Deleted active incident cache service={}", service);
     }
 
     private String cacheKey(String service) {

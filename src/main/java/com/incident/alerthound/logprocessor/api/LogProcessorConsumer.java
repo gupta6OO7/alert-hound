@@ -28,8 +28,15 @@ public class LogProcessorConsumer {
     )
     public void consume(LogEvent event, Acknowledgment acknowledgment) {
         try {
+            LOGGER.info(
+                    "Consumed raw log eventId={} service={} level={}",
+                    event != null ? event.id() : "unknown",
+                    event != null ? event.service() : "unknown",
+                    event != null ? event.level() : "unknown"
+            );
             logProcessorService.process(event);
             acknowledgment.acknowledge();
+            LOGGER.debug("Acknowledged raw log eventId={}", event != null ? event.id() : "unknown");
         } catch (LogTransformationException exception) {
             LOGGER.warn(
                     "Skipping invalid log {}: {}",

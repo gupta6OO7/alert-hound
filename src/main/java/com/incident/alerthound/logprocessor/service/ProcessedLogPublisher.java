@@ -22,6 +22,13 @@ public class ProcessedLogPublisher {
     }
 
     public void publish(StructuredLog log) {
+        LOGGER.info(
+                "Producing processed log eventId={} service={} error={} topic={}",
+                log.id(),
+                log.service(),
+                log.error(),
+                topicName
+        );
         kafkaTemplate.send(topicName, log.service(), log)
                 .whenComplete((result, exception) -> {
                     if (exception != null) {

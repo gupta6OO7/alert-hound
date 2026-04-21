@@ -107,6 +107,7 @@ public class GeminiLlmClient implements LlmClient {
                 return fallbackClient.decide(context);
             }
 
+            LOGGER.debug("Gemini raw response incidentId={} response={}", context.incident().incidentId(), response);
             return parseDecision(response, context);
         } catch (RuntimeException exception) {
             LOGGER.warn("Gemini decision failed. Falling back to rule-based decision.", exception);
@@ -256,6 +257,7 @@ public class GeminiLlmClient implements LlmClient {
         }
 
         Map<String, Object> input = mapValue(toolCall.path("input"));
+        LOGGER.info("Gemini selected tool={} input={}", toolName, input);
         return AgentDecision.builder()
                 .actionType(AgentActionType.TOOL_CALL)
                 .toolCall(ToolCall.builder()

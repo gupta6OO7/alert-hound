@@ -58,6 +58,10 @@ spring:
 server:
   port: ${SERVER_PORT:8080}
 
+logging:
+  level:
+    com.incident.alerthound: ${ALERT_HOUND_LOG_LEVEL:DEBUG}
+
 alert-hound:
   kafka:
     cluster-id: ${ALERT_HOUND_KAFKA_CLUSTER_ID:}
@@ -85,6 +89,10 @@ alert-hound:
         name: ${ALERT_HOUND_KAFKA_TOPIC_AGENT_RESULTS:agent.results}
         partitions: ${ALERT_HOUND_KAFKA_TOPIC_AGENT_RESULTS_PARTITIONS:3}
         replication-factor: ${ALERT_HOUND_KAFKA_TOPIC_AGENT_RESULTS_REPLICATION_FACTOR:1}
+      incidents-updated:
+        name: ${ALERT_HOUND_KAFKA_TOPIC_INCIDENTS_UPDATED:incidents.updated}
+        partitions: ${ALERT_HOUND_KAFKA_TOPIC_INCIDENTS_UPDATED_PARTITIONS:3}
+        replication-factor: ${ALERT_HOUND_KAFKA_TOPIC_INCIDENTS_UPDATED_REPLICATION_FACTOR:1}
   elasticsearch:
     endpoint: ${ALERT_HOUND_ELASTICSEARCH_ENDPOINT:}
     api-key: ${ALERT_HOUND_ELASTICSEARCH_API_KEY:}
@@ -98,6 +106,7 @@ alert-hound:
     error-rate-threshold: ${ALERT_HOUND_DETECTION_ERROR_RATE_THRESHOLD:0.05}
   incidents:
     consumer-group-id: ${ALERT_HOUND_INCIDENTS_CONSUMER_GROUP_ID:incident-group}
+    enrichment-consumer-group-id: ${ALERT_HOUND_INCIDENT_ENRICHMENT_CONSUMER_GROUP_ID:incident-enrichment-group}
     active-cache-ttl-hours: ${ALERT_HOUND_INCIDENTS_ACTIVE_CACHE_TTL_HOURS:24}
   agent:
     consumer-group-id: ${ALERT_HOUND_AGENT_CONSUMER_GROUP_ID:agent-group}

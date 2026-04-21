@@ -12,10 +12,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RagService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RagService.class);
 
     private final IncidentRepository incidentRepository;
     private final AgentLogSearchService agentLogSearchService;
@@ -53,11 +57,21 @@ public class RagService {
                 .map(this::toHistorySnippet)
                 .toList();
 
+        LOGGER.info(
+                "Built RAG context incidentId={} service={} windowStart={} windowEnd={} logs={} history={}",
+                task.incidentId(),
+                task.service(),
+                windowStart,
+                task.triggeredAt(),
+                logs.size(),
+                history.size()
+        );
         return new AgentContext(task, logs, history);
     }
 
     public ToolResult searchLogs(String service, Instant from, Instant to, int limit) {
         List<String> logs = agentLogSearchService.searchRecentLogs(service, from, to, limit);
+        LOGGER.info("RAG tool search_logs service={} from={} to={} limit={} results={}", service, from, to, limit, logs.size());
         return ToolResult.builder()
                 .toolName("search_logs")
                 .success(true)
@@ -72,6 +86,7 @@ public class RagService {
                 .map(this::toHistorySnippet)
                 .collect(Collectors.toList());
 
+        LOGGER.info("RAG tool get_incident_history service={} limit={} results={}", service, limit, history.size());
         return ToolResult.builder()
                 .toolName("get_incident_history")
                 .success(true)

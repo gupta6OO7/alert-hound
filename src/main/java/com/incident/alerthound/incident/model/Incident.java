@@ -42,6 +42,9 @@ public class Incident {
     @Column(length = 4000)
     private String rootCause;
 
+    @Column(length = 4000)
+    private String recommendationsJson;
+
     @Column(nullable = false)
     private Instant createdAt;
 
@@ -121,6 +124,14 @@ public class Incident {
 
     public void setRootCause(String rootCause) {
         this.rootCause = rootCause;
+    }
+
+    public String getRecommendationsJson() {
+        return recommendationsJson;
+    }
+
+    public void setRecommendationsJson(String recommendationsJson) {
+        this.recommendationsJson = recommendationsJson;
     }
 
     public Instant getCreatedAt() {

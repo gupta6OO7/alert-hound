@@ -47,14 +47,14 @@ class IncidentServiceTest {
         Incident incident = incidentService.handleIncidentCreated(event);
 
         assertThat(incident.getId()).isEqualTo(UUID.fromString(event.incidentId()));
-        assertThat(incident.getStatus()).isEqualTo(IncidentStatus.ACTIVE);
+        assertThat(incident.getStatus()).isEqualTo(IncidentStatus.INVESTIGATING);
         assertThat(incident.getService()).isEqualTo("payment");
         verify(activeIncidentCacheRepository).save(org.mockito.ArgumentMatchers.any());
         verify(agentTaskProducer).trigger(incident);
     }
 
     @Test
-    void shouldRefreshExistingOpenIncidentInsteadOfCreatingNewOne() {
+    void shouldRefreshExistingLegacyActiveIncidentAndTriggerAgent() {
         IncidentCreatedEvent event = incidentEvent();
         Incident existing = new Incident();
         existing.setId(UUID.randomUUID());
@@ -74,8 +74,37 @@ class IncidentServiceTest {
         Incident result = incidentService.handleIncidentCreated(event);
 
         assertThat(result.getId()).isEqualTo(existing.getId());
+        assertThat(result.getStatus()).isEqualTo(IncidentStatus.INVESTIGATING);
         assertThat(result.getSeverity()).isEqualTo("HIGH");
         assertThat(result.getErrorRate()).isEqualTo(0.12d);
+        verify(activeIncidentCacheRepository).save(org.mockito.ArgumentMatchers.any());
+        verify(agentTaskProducer).trigger(existing);
+    }
+
+    @Test
+    void shouldRefreshInvestigatedIncidentWithoutRetriggeringAgentWhenFindingsExist() {
+        IncidentCreatedEvent event = incidentEvent();
+        Incident existing = new Incident();
+        existing.setId(UUID.randomUUID());
+        existing.setService("payment");
+        existing.setStatus(IncidentStatus.INVESTIGATED);
+        existing.setSeverity("MEDIUM");
+        existing.setErrorRate(0.10d);
+        existing.setStartTime(Instant.parse("2026-04-07T09:59:00Z"));
+        existing.setLastDetectedAt(Instant.parse("2026-04-07T10:00:00Z"));
+        existing.setSummary("DB timeout spike");
+        existing.setRootCause("Connection pool saturation");
+
+        when(incidentRepository.findFirstByServiceAndStatusInOrderByCreatedAtDesc(
+                org.mockito.ArgumentMatchers.eq("payment"),
+                org.mockito.ArgumentMatchers.anyCollection()
+        )).thenReturn(Optional.of(existing));
+        when(incidentRepository.save(existing)).thenReturn(existing);
+
+        Incident result = incidentService.handleIncidentCreated(event);
+
+        assertThat(result.getId()).isEqualTo(existing.getId());
+        assertThat(result.getStatus()).isEqualTo(IncidentStatus.INVESTIGATED);
         verify(activeIncidentCacheRepository).save(org.mockito.ArgumentMatchers.any());
         verify(agentTaskProducer, never()).trigger(existing);
     }

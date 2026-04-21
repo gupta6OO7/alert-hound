@@ -29,7 +29,8 @@ public record AlertHoundProperties(
             TopicDefinition logsProcessed,
             TopicDefinition incidentsCreated,
             TopicDefinition agentTasks,
-            TopicDefinition agentResults
+            TopicDefinition agentResults,
+            TopicDefinition incidentsUpdated
     ) {
     }
 
@@ -59,6 +60,7 @@ public record AlertHoundProperties(
 
     public record IncidentProperties(
             String consumerGroupId,
+            String enrichmentConsumerGroupId,
             int activeCacheTtlHours
     ) {
     }

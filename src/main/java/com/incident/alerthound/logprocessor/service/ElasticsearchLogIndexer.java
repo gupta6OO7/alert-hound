@@ -46,6 +46,7 @@ public class ElasticsearchLogIndexer {
         ensureIndex(indexName);
 
         try {
+            LOGGER.debug("Indexing structured log eventId={} service={} index={}", log.id(), log.service(), indexName);
             elasticsearchClient.index(request -> request
                     .index(indexName)
                     .id(log.id())

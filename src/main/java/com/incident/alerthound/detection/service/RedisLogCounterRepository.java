@@ -6,11 +6,15 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public class RedisLogCounterRepository {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RedisLogCounterRepository.class);
 
     private final StringRedisTemplate redisTemplate;
     private final Duration counterTtl;
@@ -29,12 +33,28 @@ public class RedisLogCounterRepository {
         if (error) {
             incrementKey(counterKey(service, bucket(timestamp), "error"));
         }
+
+        LOGGER.debug(
+                "Incremented detection counters service={} bucket={} error={} totalKey={}",
+                service,
+                bucket(timestamp),
+                error,
+                totalKey
+        );
     }
 
     public DetectionSnapshot readWindow(String service, Instant windowEnd) {
         List<String> totalKeys = windowKeys(service, windowEnd, "total");
         List<String> errorKeys = windowKeys(service, windowEnd, "error");
-        return new DetectionSnapshot(sum(totalKeys), sum(errorKeys));
+        DetectionSnapshot snapshot = new DetectionSnapshot(sum(totalKeys), sum(errorKeys));
+        LOGGER.debug(
+                "Read detection window service={} windowEnd={} totalLogs={} errorLogs={}",
+                service,
+                bucket(windowEnd),
+                snapshot.totalLogs(),
+                snapshot.errorLogs()
+        );
+        return snapshot;
     }
 
     public Instant windowStart(Instant windowEnd) {

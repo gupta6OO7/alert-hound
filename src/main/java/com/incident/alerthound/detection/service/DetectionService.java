@@ -32,12 +32,28 @@ public class DetectionService {
         Instant timestamp = log.timestamp();
         String service = log.service();
 
+        LOGGER.info(
+                "Evaluating detection for log eventId={} service={} error={} timestamp={}",
+                log.id(),
+                service,
+                log.error(),
+                timestamp
+        );
         logCounterRepository.increment(timestamp, service, log.error());
 
         DetectionSnapshot snapshot = logCounterRepository.readWindow(service, timestamp);
         Instant windowEnd = timestamp.truncatedTo(java.time.temporal.ChronoUnit.MINUTES);
         Instant windowStart = logCounterRepository.windowStart(windowEnd);
         DetectionDecision decision = thresholdEvaluator.evaluate(snapshot, windowStart, windowEnd);
+        LOGGER.info(
+                "Detection decision service={} triggered={} totalLogs={} errorLogs={} errorRate={} reason={}",
+                service,
+                decision.incidentTriggered(),
+                decision.totalLogs(),
+                decision.errorLogs(),
+                decision.errorRate(),
+                decision.reason()
+        );
 
         if (!decision.incidentTriggered()) {
             LOGGER.debug(
@@ -52,10 +68,11 @@ public class DetectionService {
         }
 
         if (!incidentDedupRepository.tryActivate(service)) {
-            LOGGER.debug("Skipping duplicate incident for service {}", service);
+            LOGGER.info("Dedup blocked incident publication for service={}", service);
             return;
         }
 
+        LOGGER.info("Detection triggered incident publication for service={}", service);
         incidentPublisher.publish(service, decision);
     }
 }

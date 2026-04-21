@@ -7,10 +7,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ToolExecutor {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ToolExecutor.class);
 
     private final Map<String, Tool> tools;
 
@@ -23,6 +27,9 @@ public class ToolExecutor {
         if (tool == null) {
             throw new ToolExecutionException("Unknown tool: " + call.name());
         }
-        return tool.execute(call.input());
+        LOGGER.debug("Dispatching tool name={} input={}", call.name(), call.input());
+        ToolResult result = tool.execute(call.input());
+        LOGGER.debug("Tool returned name={} success={} summary={}", result.toolName(), result.success(), result.summary());
+        return result;
     }
 }

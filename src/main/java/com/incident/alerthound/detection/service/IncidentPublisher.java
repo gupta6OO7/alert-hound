@@ -43,6 +43,13 @@ public class IncidentPublisher {
                 .reason(decision.reason())
                 .build();
 
+        LOGGER.info(
+                "Producing incident event incidentId={} service={} severity={} topic={}",
+                event.incidentId(),
+                service,
+                event.severity(),
+                topicName
+        );
         kafkaTemplate.send(topicName, service, event)
                 .whenComplete((result, exception) -> {
                     if (exception != null) {
@@ -64,6 +71,7 @@ public class IncidentPublisher {
                 .join();
 
         incidentDebugRepository.saveLastIncident(service, event);
+        LOGGER.debug("Saved last incident debug snapshot incidentId={} service={}", event.incidentId(), service);
     }
 
     private String resolveTopic(AlertHoundProperties properties) {

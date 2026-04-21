@@ -26,8 +26,15 @@ public class IncidentConsumer {
     )
     public void consume(IncidentCreatedEvent event, Acknowledgment acknowledgment) {
         try {
+            LOGGER.info(
+                    "Consumed incident event incidentId={} service={} severity={}",
+                    event != null ? event.incidentId() : "unknown",
+                    event != null ? event.service() : "unknown",
+                    event != null ? event.severity() : "unknown"
+            );
             incidentService.handleIncidentCreated(event);
             acknowledgment.acknowledge();
+            LOGGER.debug("Acknowledged incident event incidentId={}", event != null ? event.incidentId() : "unknown");
         } catch (RuntimeException exception) {
             LOGGER.error("Failed to process incident event {}", event != null ? event.incidentId() : "unknown", exception);
             throw exception;

@@ -1,6 +1,8 @@
 package com.incident.alerthound.incident.config;
 
+import com.incident.alerthound.agent.model.AgentResultEvent;
 import com.incident.alerthound.incident.model.AgentTaskEvent;
+import com.incident.alerthound.incident.model.IncidentUpdatedEvent;
 import java.util.Map;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -38,6 +40,17 @@ public class KafkaIncidentConfig {
     }
 
     @Bean
+    public ConsumerFactory<String, Object> agentResultIncidentConsumerFactory(KafkaProperties kafkaProperties) {
+        Map<String, Object> properties = kafkaProperties.buildConsumerProperties();
+        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+        properties.put(JsonDeserializer.TRUSTED_PACKAGES, "com.incident.alerthound.*");
+        properties.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+        properties.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.incident.alerthound.agent.model.AgentResultEvent");
+        return new DefaultKafkaConsumerFactory<>(properties);
+    }
+
+    @Bean
     public ProducerFactory<String, AgentTaskEvent> agentTaskProducerFactory(KafkaProperties kafkaProperties) {
         Map<String, Object> properties = kafkaProperties.buildProducerProperties();
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -54,6 +67,22 @@ public class KafkaIncidentConfig {
     }
 
     @Bean
+    public ProducerFactory<String, IncidentUpdatedEvent> incidentUpdatedProducerFactory(KafkaProperties kafkaProperties) {
+        Map<String, Object> properties = kafkaProperties.buildProducerProperties();
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        properties.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
+        return new DefaultKafkaProducerFactory<>(properties);
+    }
+
+    @Bean
+    public KafkaTemplate<String, IncidentUpdatedEvent> incidentUpdatedKafkaTemplate(
+            ProducerFactory<String, IncidentUpdatedEvent> incidentUpdatedProducerFactory
+    ) {
+        return new KafkaTemplate<>(incidentUpdatedProducerFactory);
+    }
+
+    @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> incidentKafkaListenerContainerFactory(
             ConsumerFactory<String, Object> incidentConsumerFactory,
             CommonErrorHandler incidentErrorHandler,
@@ -61,6 +90,20 @@ public class KafkaIncidentConfig {
     ) {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(incidentConsumerFactory);
+        factory.setCommonErrorHandler(incidentErrorHandler);
+        factory.setAutoStartup(autoStartup);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        return factory;
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, Object> agentResultIncidentKafkaListenerContainerFactory(
+            ConsumerFactory<String, Object> agentResultIncidentConsumerFactory,
+            CommonErrorHandler incidentErrorHandler,
+            @Value("${spring.kafka.listener.auto-startup:true}") boolean autoStartup
+    ) {
+        ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(agentResultIncidentConsumerFactory);
         factory.setCommonErrorHandler(incidentErrorHandler);
         factory.setAutoStartup(autoStartup);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);

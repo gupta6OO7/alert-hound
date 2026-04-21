@@ -57,12 +57,13 @@ class AgentTaskConsumerTest {
                                 null,
                                 null,
                                 new AlertHoundProperties.TopicDefinition("agent.tasks", 3, (short) 1),
-                                new AlertHoundProperties.TopicDefinition("agent.results", 3, (short) 1)
+                                new AlertHoundProperties.TopicDefinition("agent.results", 3, (short) 1),
+                                new AlertHoundProperties.TopicDefinition("incidents.updated", 3, (short) 1)
                         )
                 ),
                 null,
                 null,
-                null,
+                new AlertHoundProperties.IncidentProperties("incident-group", "incident-enrichment-group", 24),
                 new AlertHoundProperties.AgentProperties("agent-group", 3, 20, 5, 5)
         );
     }

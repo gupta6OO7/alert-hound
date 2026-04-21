@@ -21,6 +21,17 @@ public class IncidentTopicConfig {
         );
     }
 
+    @Bean
+    @ConditionalOnProperty(prefix = "alert-hound.kafka.admin", name = "auto-create-topics", havingValue = "true")
+    public NewTopic incidentsUpdatedTopic(AlertHoundProperties properties) {
+        return buildTopic(
+                properties != null && properties.kafka() != null && properties.kafka().topics() != null
+                        ? properties.kafka().topics().incidentsUpdated()
+                        : null,
+                "incidents.updated"
+        );
+    }
+
     private NewTopic buildTopic(AlertHoundProperties.TopicDefinition topic, String defaultName) {
         int partitions = topic != null && topic.partitions() > 0 ? topic.partitions() : 3;
         short replicationFactor = topic != null && topic.replicationFactor() > 0 ? topic.replicationFactor() : 1;

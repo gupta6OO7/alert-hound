@@ -1,18 +1,21 @@
 package com.incident.alerthound.incident.model;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
+import lombok.Builder;
 
-public record ActiveIncidentState(
+@Builder
+public record IncidentUpdatedEvent(
         UUID incidentId,
         String service,
         IncidentStatus status,
         String severity,
         double errorRate,
-        Instant startTime,
-        Instant lastUpdated,
         String summary,
         String rootCause,
-        java.util.List<String> recommendations
+        List<String> recommendations,
+        Instant updatedAt,
+        Instant lastDetectedAt
 ) {
 }

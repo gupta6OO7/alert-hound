@@ -34,10 +34,19 @@ public class AgentLogSearchService {
     public List<String> searchRecentLogs(String service, Instant from, Instant to, int limit) {
         ElasticsearchClient client = elasticsearchClientProvider.getIfAvailable();
         if (client == null || !StringUtils.hasText(service) || from == null || to == null || limit <= 0) {
+            LOGGER.debug(
+                    "Skipping Elasticsearch log search service={} from={} to={} limit={} clientAvailable={}",
+                    service,
+                    from,
+                    to,
+                    limit,
+                    client != null
+            );
             return List.of();
         }
 
         try {
+            LOGGER.debug("Searching Elasticsearch logs service={} from={} to={} limit={} indexPattern={}", service, from, to, limit, indexPattern);
             SearchResponse<StructuredLog> response = client.search(
                     request -> request
                             .index(indexPattern)
@@ -56,6 +65,7 @@ public class AgentLogSearchService {
                     logs.add(formatLog(log));
                 }
             });
+            LOGGER.debug("Elasticsearch search returned {} logs for service={}", logs.size(), service);
             return logs;
         } catch (IOException exception) {
             LOGGER.warn("Failed to search Elasticsearch for service {}", service, exception);

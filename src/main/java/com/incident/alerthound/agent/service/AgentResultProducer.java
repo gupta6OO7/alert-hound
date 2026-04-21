@@ -22,6 +22,14 @@ public class AgentResultProducer {
     }
 
     public void publish(AgentResultEvent event) {
+        LOGGER.info(
+                "Producing agent result incidentId={} service={} usedFallback={} iterations={} topic={}",
+                event.incidentId(),
+                event.service(),
+                event.usedFallback(),
+                event.iterations(),
+                topicName
+        );
         kafkaTemplate.send(topicName, event.service(), event)
                 .whenComplete((result, exception) -> {
                     if (exception != null) {

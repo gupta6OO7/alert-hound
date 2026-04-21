@@ -26,8 +26,15 @@ public class DetectionConsumer {
     )
     public void consume(StructuredLog log, Acknowledgment acknowledgment) {
         try {
+            LOGGER.info(
+                    "Consumed processed log eventId={} service={} error={}",
+                    log != null ? log.id() : "unknown",
+                    log != null ? log.service() : "unknown",
+                    log != null && log.error()
+            );
             detectionService.process(log);
             acknowledgment.acknowledge();
+            LOGGER.debug("Acknowledged processed log eventId={}", log != null ? log.id() : "unknown");
         } catch (RuntimeException exception) {
             LOGGER.error("Detection failed for log {}", log != null ? log.id() : "unknown", exception);
             throw exception;

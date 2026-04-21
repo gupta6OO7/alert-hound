@@ -36,6 +36,13 @@ public class KafkaProducerService {
     }
 
     public void send(LogEvent event) {
+        LOGGER.info(
+                "Producing raw log eventId={} service={} level={} topic={}",
+                event.id(),
+                event.service(),
+                event.level(),
+                logsRawTopic
+        );
         kafkaTemplate.send(logsRawTopic, event.service(), event)
                 .whenComplete((result, exception) -> {
                     if (exception != null) {

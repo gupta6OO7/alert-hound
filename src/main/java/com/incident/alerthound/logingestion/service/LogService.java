@@ -6,12 +6,15 @@ import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 @Service
 public class LogService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(LogService.class);
     private static final String DEFAULT_LEVEL = "INFO";
 
     private final KafkaProducerService kafkaProducerService;
@@ -22,6 +25,13 @@ public class LogService {
 
     public String processLog(LogRequest request) {
         LogEvent event = enrich(request);
+        LOGGER.info(
+                "Accepted log request service={} level={} traceId={} eventId={}",
+                event.service(),
+                event.level(),
+                event.traceId(),
+                event.id()
+        );
         kafkaProducerService.send(event);
         return event.id();
     }

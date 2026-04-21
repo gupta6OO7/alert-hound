@@ -33,6 +33,13 @@ public class AgentTaskProducer {
                 .triggeredAt(Instant.now())
                 .build();
 
+        LOGGER.info(
+                "Producing agent task incidentId={} service={} severity={} topic={}",
+                incident.getId(),
+                incident.getService(),
+                incident.getSeverity(),
+                topicName
+        );
         kafkaTemplate.send(topicName, incident.getService(), event)
                 .whenComplete((result, exception) -> {
                     if (exception != null) {

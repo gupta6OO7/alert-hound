@@ -8,14 +8,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RuleBasedLlmClient implements LlmClient {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(RuleBasedLlmClient.class);
+
     @Override
     public AgentDecision decide(AgentContext context) {
         if (!context.hasToolResult("search_logs")) {
+            LOGGER.debug("RuleBasedLlmClient selecting tool search_logs for incident {}", context.incident().incidentId());
             return AgentDecision.builder()
                     .actionType(AgentActionType.TOOL_CALL)
                     .toolCall(ToolCall.builder()
@@ -31,6 +36,7 @@ public class RuleBasedLlmClient implements LlmClient {
         }
 
         if (!context.hasToolResult("get_incident_history")) {
+            LOGGER.debug("RuleBasedLlmClient selecting tool get_incident_history for incident {}", context.incident().incidentId());
             return AgentDecision.builder()
                     .actionType(AgentActionType.TOOL_CALL)
                     .toolCall(ToolCall.builder()
@@ -43,6 +49,7 @@ public class RuleBasedLlmClient implements LlmClient {
                     .build();
         }
 
+        LOGGER.debug("RuleBasedLlmClient returning FINAL for incident {}", context.incident().incidentId());
         return AgentDecision.builder()
                 .actionType(AgentActionType.FINAL)
                 .summary(buildSummary(context))

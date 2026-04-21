@@ -5,11 +5,15 @@ import com.incident.alerthound.logprocessor.model.StructuredLog;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 @Component
 public class StructuredLogMapper {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StructuredLogMapper.class);
 
     public StructuredLog map(LogEvent event) {
         if (event == null) {
@@ -29,7 +33,7 @@ public class StructuredLogMapper {
         String level = normalizeLevel(event.level());
         String message = event.message().trim();
 
-        return StructuredLog.builder()
+        StructuredLog structuredLog = StructuredLog.builder()
                 .id(event.id().trim())
                 .service(event.service().trim())
                 .level(level)
@@ -40,6 +44,15 @@ public class StructuredLogMapper {
                 .error(isError(level))
                 .processedAt(Instant.now())
                 .build();
+        LOGGER.debug(
+                "Structured log mapped eventId={} service={} level={} error={} category={}",
+                structuredLog.id(),
+                structuredLog.service(),
+                structuredLog.level(),
+                structuredLog.error(),
+                structuredLog.errorCategory()
+        );
+        return structuredLog;
     }
 
     private Instant parseTimestamp(String timestamp) {

@@ -63,13 +63,42 @@ public class AgentService {
     }
 
     private InvestigationOutcome runInvestigation(AgentTaskEvent task, boolean publishResult, boolean captureTrace) {
+        LOGGER.info(
+                "Starting agent investigation incidentId={} service={} publishResult={} captureTrace={} maxIterations={} llmClient={}",
+                task.incidentId(),
+                task.service(),
+                publishResult,
+                captureTrace,
+                maxIterations,
+                llmClient.getClass().getSimpleName()
+        );
         AgentContext context = ragService.initializeContext(task);
+        LOGGER.info(
+                "Initialized agent context incidentId={} ragLogs={} history={} priorToolResults={}",
+                task.incidentId(),
+                context.ragLogs().size(),
+                context.historicalIncidents().size(),
+                context.toolResults().size()
+        );
         List<AgentInvestigationStep> steps = captureTrace ? new ArrayList<>() : List.of();
 
         for (int iteration = 1; iteration <= maxIterations; iteration++) {
             AgentDecision decision = llmClient.decide(context);
+            LOGGER.info(
+                    "Agent decision incidentId={} iteration={} actionType={}",
+                    task.incidentId(),
+                    iteration,
+                    decision.actionType()
+            );
             if (decision.actionType() == AgentActionType.FINAL) {
                 AgentResultEvent result = finalResult(task, decision, iteration, false);
+                LOGGER.info(
+                        "Agent produced final decision incidentId={} iteration={} usedFallback={} recommendations={}",
+                        task.incidentId(),
+                        iteration,
+                        false,
+                        result.recommendations().size()
+                );
                 if (captureTrace) {
                     steps.add(AgentInvestigationStep.finalStep(
                             iteration,
@@ -85,8 +114,23 @@ public class AgentService {
             }
 
             try {
+                LOGGER.info(
+                        "Executing tool incidentId={} iteration={} tool={} input={}",
+                        task.incidentId(),
+                        iteration,
+                        decision.toolCall().name(),
+                        decision.toolCall().input()
+                );
                 ToolResult toolResult = toolExecutor.execute(decision.toolCall());
                 context.addToolResult(toolResult);
+                LOGGER.info(
+                        "Tool completed incidentId={} iteration={} tool={} success={} summary={}",
+                        task.incidentId(),
+                        iteration,
+                        toolResult.toolName(),
+                        toolResult.success(),
+                        toolResult.summary()
+                );
                 if (captureTrace) {
                     steps.add(AgentInvestigationStep.toolStep(
                             iteration,
@@ -118,6 +162,11 @@ public class AgentService {
         }
 
         AgentResultEvent fallback = fallbackResult(task);
+        LOGGER.info(
+                "Agent exhausted iterations incidentId={} maxIterations={} usedFallback=true",
+                task.incidentId(),
+                maxIterations
+        );
         if (captureTrace) {
             steps.add(AgentInvestigationStep.finalStep(
                     maxIterations,
