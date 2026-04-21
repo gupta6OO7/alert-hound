@@ -29,15 +29,18 @@ public class IncidentService {
     private final IncidentRepository incidentRepository;
     private final ActiveIncidentCacheRepository activeIncidentCacheRepository;
     private final AgentTaskProducer agentTaskProducer;
+    private final IncidentUpdateProducer incidentUpdateProducer;
 
     public IncidentService(
             IncidentRepository incidentRepository,
             ActiveIncidentCacheRepository activeIncidentCacheRepository,
-            AgentTaskProducer agentTaskProducer
+            AgentTaskProducer agentTaskProducer,
+            IncidentUpdateProducer incidentUpdateProducer
     ) {
         this.incidentRepository = incidentRepository;
         this.activeIncidentCacheRepository = activeIncidentCacheRepository;
         this.agentTaskProducer = agentTaskProducer;
+        this.incidentUpdateProducer = incidentUpdateProducer;
     }
 
     @Transactional
@@ -132,6 +135,7 @@ public class IncidentService {
 
         Incident savedIncident = incidentRepository.save(incident);
         activeIncidentCacheRepository.delete(savedIncident.getService());
+        incidentUpdateProducer.publish(savedIncident);
         LOGGER.info("Resolved incident incidentId={} service={}", savedIncident.getId(), savedIncident.getService());
         return savedIncident;
     }

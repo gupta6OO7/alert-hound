@@ -31,6 +31,9 @@ class IncidentServiceTest {
     @Mock
     private AgentTaskProducer agentTaskProducer;
 
+    @Mock
+    private IncidentUpdateProducer incidentUpdateProducer;
+
     @InjectMocks
     private IncidentService incidentService;
 
@@ -127,6 +130,7 @@ class IncidentServiceTest {
         assertThat(resolved.getStatus()).isEqualTo(IncidentStatus.RESOLVED);
         assertThat(resolved.getEndTime()).isNotNull();
         verify(activeIncidentCacheRepository).delete("payment");
+        verify(incidentUpdateProducer).publish(incident);
     }
 
     @Test
