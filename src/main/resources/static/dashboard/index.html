@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert Hound Dashboard</title>
+    <link rel="stylesheet" href="/dashboard/styles.css">
+</head>
+<body>
+<div class="shell">
+    <header class="hero">
+        <div class="hero-copy">
+            <p class="eyebrow">Alert Hound</p>
+            <h1>Incident Projection Console</h1>
+            <p class="lede">Persistent consumer-facing view over <code>incidents.updated</code>. This page reads the projection, not the source incident write path.</p>
+        </div>
+        <div class="hero-metrics">
+            <article class="metric-card">
+                <span class="metric-label">Projected Incidents</span>
+                <strong id="metric-total">0</strong>
+            </article>
+            <article class="metric-card">
+                <span class="metric-label">Investigated</span>
+                <strong id="metric-investigated">0</strong>
+            </article>
+            <article class="metric-card">
+                <span class="metric-label">Resolved</span>
+                <strong id="metric-resolved">0</strong>
+            </article>
+        </div>
+    </header>
+
+    <main class="layout">
+        <section class="panel controls-panel">
+            <div class="panel-header">
+                <h2>Filters</h2>
+                <button id="refresh-button" type="button">Refresh</button>
+            </div>
+            <label class="field">
+                <span>Service</span>
+                <input id="service-filter" type="text" placeholder="payment">
+            </label>
+            <p class="hint">Leave blank to view all projected incidents. The data persists in the projection table across app restarts.</p>
+        </section>
+
+        <section class="panel list-panel">
+            <div class="panel-header">
+                <h2>Projected Incident Feed</h2>
+                <span id="last-sync" class="muted">Not loaded</span>
+            </div>
+            <div id="list-state" class="state">Loading projected incidents...</div>
+            <div id="incident-list" class="incident-list"></div>
+        </section>
+
+        <section class="panel details-panel">
+            <div class="panel-header">
+                <h2>Incident Detail</h2>
+                <span id="detail-status" class="badge neutral">No selection</span>
+            </div>
+            <div id="detail-empty" class="state">Select an incident from the feed to inspect the persistent projection.</div>
+            <div id="detail-content" class="detail-content hidden">
+                <div class="detail-grid">
+                    <div>
+                        <span class="detail-label">Incident ID</span>
+                        <code id="detail-id"></code>
+                    </div>
+                    <div>
+                        <span class="detail-label">Service</span>
+                        <strong id="detail-service"></strong>
+                    </div>
+                    <div>
+                        <span class="detail-label">Severity</span>
+                        <strong id="detail-severity"></strong>
+                    </div>
+                    <div>
+                        <span class="detail-label">Error Rate</span>
+                        <strong id="detail-error-rate"></strong>
+                    </div>
+                    <div>
+                        <span class="detail-label">Updated At</span>
+                        <strong id="detail-updated-at"></strong>
+                    </div>
+                    <div>
+                        <span class="detail-label">Last Detected</span>
+                        <strong id="detail-last-detected"></strong>
+                    </div>
+                </div>
+
+                <section class="detail-section">
+                    <span class="detail-label">Summary</span>
+                    <p id="detail-summary"></p>
+                </section>
+
+                <section class="detail-section">
+                    <span class="detail-label">Root Cause</span>
+                    <p id="detail-root-cause"></p>
+                </section>
+
+                <section class="detail-section">
+                    <span class="detail-label">Recommendations</span>
+                    <ul id="detail-recommendations" class="recommendations"></ul>
+                </section>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="/dashboard/app.js"></script>
+</body>
+</html>
